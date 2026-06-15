@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House of Water — Schedule</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a18;min-height:100vh;padding:24px 16px}
+.container{max-width:820px;margin:0 auto}
+h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:13px;color:#6b6b66;margin-bottom:24px}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{padding:7px 18px;border:1px solid #ddddd8;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#6b6b66;font-family:inherit}
+.tab.active{background:#1a1a18;color:#fff;border-color:#1a1a18;font-weight:500}
+.tab:hover:not(.active){background:#f0f0eb}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:#fff;border:1px solid #e8e8e3;border-radius:10px;padding:14px 16px}
+.metric label{font-size:11px;color:#6b6b66;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.metric .val{font-size:22px;font-weight:600;color:#1a1a18}
+.metric .sub{font-size:11px;color:#9b9b96;margin-top:2px}
+.card{background:#fff;border:1px solid #e8e8e3;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.card-title{font-size:11px;font-weight:600;color:#6b6b66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.week-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.week-label{font-size:15px;font-weight:600;color:#1a1a18}
+.week-nav{display:flex;align-items:center;gap:6px}
+.week-nav button{background:#fff;border:1px solid #ddddd8;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:13px;color:#1a1a18;font-family:inherit}
+.week-nav button:hover{background:#f0f0eb}
+.section-actions{display:flex;gap:8px;align-items:center}
+.btn{background:#fff;border:1px solid #ddddd8;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:13px;color:#1a1a18;font-family:inherit;font-weight:500}
+.btn:hover{background:#f0f0eb}
+.btn-save{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.btn-save:hover{background:#333330}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;color:#6b6b66;font-weight:500;border-bottom:1px solid #e8e8e3;font-size:12px}
+td{padding:8px 10px;border-bottom:1px solid #f0f0eb;color:#1a1a18;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.shift-input{border:1px solid #e0e0db;border-radius:6px;padding:5px 8px;font-size:12px;width:88px;background:#fafaf8;color:#1a1a18;font-family:inherit}
+.shift-input:focus{outline:none;border-color:#1a1a18;background:#fff}
+.total-row td{font-weight:600;background:#fafaf8;color:#1a1a18}
+.pay-row td{font-weight:600;background:#f0f5ea;color:#1a1a18}
+.rate-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.rate-field{display:flex;align-items:center;gap:8px;font-size:14px;color:#1a1a18}
+.rate-field label{color:#6b6b66;font-size:13px}
+.rate-field input{width:70px;padding:6px 10px;border:1px solid #ddddd8;border-radius:7px;font-size:14px;background:#fff;color:#1a1a18;font-family:inherit}
+.rate-field input:focus{outline:none;border-color:#1a1a18}
+.history-table{width:100%;border-collapse:collapse;font-size:13px}
+.history-table th{text-align:left;padding:8px 10px;color:#6b6b66;font-weight:500;border-bottom:1px solid #e8e8e3;font-size:12px}
+.history-table td{padding:9px 10px;border-bottom:1px solid #f0f0eb;color:#1a1a18}
+.history-table tr:last-child td{border-bottom:none}
+.history-table .total-col{font-weight:600}
+.empty{text-align:center;padding:32px;color:#9b9b96;font-size:13px}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a18;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.day-label{font-weight:500;color:#1a1a18;white-space:nowrap}
+.export-btn{margin-top:12px}
+@media(max-width:640px){th:nth-child(n+5),td:nth-child(n+5){display:none}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏪 House of Water</h1>
+  <p class="subtitle">Staff schedule & payroll tracker</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('schedule')">Weekly schedule</button>
+    <button class="tab" onclick="showTab('history')">Pay history</button>
+    <button class="tab" onclick="showTab('rates')">Settings</button>
+  </div>
+
+  <div id="tab-schedule">
+    <div class="metrics" id="metrics"></div>
+    <div class="card">
+      <div class="week-header">
+        <div class="week-label" id="week-label"></div>
+        <div class="section-actions">
+          <div class="week-nav">
+            <button onclick="changeWeek(-1)">← Prev</button>
+            <button onclick="changeWeek(1)">Next →</button>
+          </div>
+          <button class="btn btn-save" onclick="saveWeek()">💾 Save week</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px">Day</th>
+            <th>Aunty in</th>
+            <th>Aunty out</th>
+            <th style="width:55px">Hrs</th>
+            <th>Cuong in</th>
+            <th>Cuong out</th>
+            <th style="width:55px">Hrs</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body"></tbody>
+        <tfoot id="schedule-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-history" style="display:none">
+    <div class="card">
+      <div class="card-title">Pay history — all saved weeks</div>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Aunty hrs</th>
+            <th>Aunty pay</th>
+            <th>Cuong hrs</th>
+            <th>Cuong pay</th>
+            <th>Total payout</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+      <div class="export-btn">
+        <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-rates" style="display:none">
+    <div class="card">
+      <div class="card-title">Pay rates</div>
+      <div class="rate-row">
+        <div class="rate-field">
+          <label>Aunty ($/hr)</label>
+          <input type="number" id="rate-aunty" value="13" min="1" step="0.5" onchange="saveRates()">
+        </div>
+        <div class="rate-field">
+          <label>Cuong ($/hr)</label>
+          <input type="number" id="rate-cuong" value="17" min="1" step="0.5" onchange="saveRates()">
+        </div>
+        <button class="btn" onclick="saveRates()">Update rates</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">How to use</div>
+      <p style="font-size:13px;color:#6b6b66;line-height:1.7">
+        Enter times as <strong>8:00 AM</strong> or <strong>6:30 PM</strong>. Hours and pay calculate automatically.<br>
+        Hit <strong>Save week</strong> to log the week to pay history.<br>
+        Use <strong>Export CSV</strong> in Pay history to download for your records.<br>
+        All data is saved in your browser — it persists between visits on the same device.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title">Clear all data</div>
+      <button class="btn" onclick="clearAll()" style="color:#c0392b;border-color:#e8b4b0">🗑 Clear all saved data</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+const DEFAULT_SCHEDULE = [
+  {aStart:'8:00 AM',aEnd:'12:00 PM',cStart:'12:00 PM',cEnd:'6:30 PM'},
+  {aStart:'8:00 AM',aEnd:'12:00 PM',cStart:'12:00 PM',cEnd:'6:30 PM'},
+  {aStart:'8:00 AM',aEnd:'12:00 PM',cStart:'12:00 PM',cEnd:'6:30 PM'},
+  {aStart:'8:00 AM',aEnd:'4:00 PM',cStart:'',cEnd:''},
+  {aStart:'8:00 AM',aEnd:'12:00 PM',cStart:'12:00 PM',cEnd:'6:30 PM'},
+  {aStart:'8:00 AM',aEnd:'12:00 PM',cStart:'12:00 PM',cEnd:'6:30 PM'},
+  {aStart:'8:00 AM',aEnd:'5:00 PM',cStart:'',cEnd:''},
+];
+
+let rateA = 13, rateC = 17;
+let history = [];
+let weekOffset = 0;
+let schedule = DEFAULT_SCHEDULE.map(d=>({...d}));
+
+function loadStorage(){
+  try{
+    const r = localStorage.getItem('how_rates');
+    if(r){const p=JSON.parse(r);rateA=p.a||13;rateC=p.c||17;}
+    document.getElementById('rate-aunty').value=rateA;
+    document.getElementById('rate-cuong').value=rateC;
+    const h = localStorage.getItem('how_history');
+    if(h) history=JSON.parse(h);
+    loadWeekData();
+  }catch(e){}
+}
+
+function saveRates(){
+  rateA=parseFloat(document.getElementById('rate-aunty').value)||13;
+  rateC=parseFloat(document.getElementById('rate-cuong').value)||17;
+  try{localStorage.setItem('how_rates',JSON.stringify({a:rateA,c:rateC}));}catch(e){}
+  renderSchedule();
+  toast('Rates updated');
+}
+
+function getWeekKey(){
+  const mon = getMondayOfWeek(weekOffset);
+  return mon.toISOString().slice(0,10);
+}
+
+function loadWeekData(){
+  try{
+    const key = 'how_week_'+getWeekKey();
+    const saved = localStorage.getItem(key);
+    if(saved) schedule=JSON.parse(saved);
+    else schedule=DEFAULT_SCHEDULE.map(d=>({...d}));
+  }catch(e){schedule=DEFAULT_SCHEDULE.map(d=>({...d}));}
+}
+
+function saveWeekData(){
+  try{
+    localStorage.setItem('how_week_'+getWeekKey(), JSON.stringify(schedule));
+  }catch(e){}
+}
+
+function getMondayOfWeek(offset){
+  const now = new Date();
+  const day = now.getDay();
+  const diff = (day===0?-6:1-day);
+  const mon = new Date(now);
+  mon.setDate(now.getDate()+diff+offset*7);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+
+function fmtDate(d){
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function parseTime(str){
+  if(!str||str.trim()==='') return null;
+  const m = str.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if(!m) return null;
+  let h=parseInt(m[1]),mn=parseInt(m[2]);
+  const ap=m[3].toUpperCase();
+  if(ap==='PM'&&h!==12) h+=12;
+  if(ap==='AM'&&h===12) h=0;
+  return h+mn/60;
+}
+
+function calcHrs(s,e){
+  const sv=parseTime(s),ev=parseTime(e);
+  if(sv===null||ev===null) return 0;
+  const d=ev-sv;
+  return d>0?d:0;
+}
+
+function getWeekLabel(){
+  const mon=getMondayOfWeek(weekOffset);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  return fmtDate(mon)+' – '+fmtDate(sun);
+}
+
+function renderSchedule(){
+  const body=document.getElementById('schedule-body');
+  body.innerHTML='';
+  let totA=0,totC=0;
+
+  DAYS.forEach((day,i)=>{
+    const row=schedule[i];
+    const hA=calcHrs(row.aStart,row.aEnd);
+    const hC=calcHrs(row.cStart,row.cEnd);
+    totA+=hA;totC+=hC;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="day-label">${day}</td>
+      <td><input class="shift-input" data-i="${i}" data-f="aStart" value="${row.aStart}" placeholder="8:00 AM"></td>
+      <td><input class="shift-input" data-i="${i}" data-f="aEnd" value="${row.aEnd}" placeholder="5:00 PM"></td>
+      <td>${hA>0?hA.toFixed(1):'-'}</td>
+      <td><input class="shift-input" data-i="${i}" data-f="cStart" value="${row.cStart}" placeholder="12:00 PM"></td>
+      <td><input class="shift-input" data-i="${i}" data-f="cEnd" value="${row.cEnd}" placeholder="6:30 PM"></td>
+      <td>${hC>0?hC.toFixed(1):'-'}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  const foot=document.getElementById('schedule-foot');
+  const payA=totA*rateA,payC=totC*rateC;
+  foot.innerHTML=`
+    <tr class="total-row">
+      <td>Total hours</td><td colspan="2"></td>
+      <td>${totA.toFixed(1)}</td>
+      <td colspan="2"></td>
+      <td>${totC.toFixed(1)}</td>
+    </tr>
+    <tr class="pay-row">
+      <td>Total pay</td>
+      <td colspan="2" style="font-size:11px;color:#6b6b66;font-weight:400">@$${rateA}/hr</td>
+      <td>$${payA.toFixed(2)}</td>
+      <td colspan="2" style="font-size:11px;color:#6b6b66;font-weight:400">@$${rateC}/hr</td>
+      <td>$${payC.toFixed(2)}</td>
+    </tr>
+  `;
+
+  renderMetrics(totA,totC,payA,payC);
+
+  body.querySelectorAll('.shift-input').forEach(inp=>{
+    inp.addEventListener('change',function(){
+      schedule[parseInt(this.dataset.i)][this.dataset.f]=this.value.trim();
+      saveWeekData();
+      renderSchedule();
+    });
+  });
+}
+
+function renderMetrics(hA,hC,pA,pC){
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><label>Aunty hours</label><div class="val">${hA.toFixed(1)}</div><div class="sub">this week</div></div>
+    <div class="metric"><label>Aunty pay</label><div class="val">$${pA.toFixed(0)}</div><div class="sub">@$${rateA}/hr</div></div>
+    <div class="metric"><label>Cuong hours</label><div class="val">${hC.toFixed(1)}</div><div class="sub">this week</div></div>
+    <div class="metric"><label>Cuong pay</label><div class="val">$${pC.toFixed(0)}</div><div class="sub">@$${rateC}/hr</div></div>
+  `;
+}
+
+function changeWeek(dir){
+  weekOffset+=dir;
+  document.getElementById('week-label').textContent=getWeekLabel();
+  loadWeekData();
+  renderSchedule();
+}
+
+function saveWeek(){
+  let totA=0,totC=0;
+  schedule.forEach(r=>{totA+=calcHrs(r.aStart,r.aEnd);totC+=calcHrs(r.cStart,r.cEnd);});
+  const entry={week:getWeekLabel(),hA:totA,pA:totA*rateA,hC:totC,pC:totC*rateC};
+  const idx=history.findIndex(h=>h.week===entry.week);
+  if(idx>=0) history[idx]=entry; else history.unshift(entry);
+  try{localStorage.setItem('how_history',JSON.stringify(history));}catch(e){}
+  saveWeekData();
+  toast('Week saved to pay history ✓');
+}
+
+function renderHistory(){
+  const body=document.getElementById('history-body');
+  if(!history.length){body.innerHTML='<tr><td colspan="6" class="empty">No weeks saved yet — fill the schedule and hit "Save week".</td></tr>';return;}
+  body.innerHTML=history.map(h=>`
+    <tr>
+      <td>${h.week}</td>
+      <td>${h.hA.toFixed(1)}</td>
+      <td>$${h.pA.toFixed(2)}</td>
+      <td>${h.hC.toFixed(1)}</td>
+      <td>$${h.pC.toFixed(2)}</td>
+      <td class="total-col">$${(h.pA+h.pC).toFixed(2)}</td>
+    </tr>
+  `).join('');
+}
+
+function exportCSV(){
+  const rows=[['Week','Aunty Hours','Aunty Pay','Cuong Hours','Cuong Pay','Total']];
+  history.forEach(h=>rows.push([h.week,h.hA.toFixed(1),'$'+h.pA.toFixed(2),h.hC.toFixed(1),'$'+h.pC.toFixed(2),'$'+(h.pA+h.pC).toFixed(2)]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='house-of-water-payroll.csv';
+  a.click();
+}
+
+function clearAll(){
+  if(!confirm('Clear all saved data? This cannot be undone.')) return;
+  localStorage.clear();
+  history=[];
+  schedule=DEFAULT_SCHEDULE.map(d=>({...d}));
+  renderSchedule();
+  renderHistory();
+  toast('All data cleared');
+}
+
+function showTab(name){
+  ['schedule','history','rates'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach((btn,i)=>{
+    btn.classList.toggle('active',['schedule','history','rates'][i]===name);
+  });
+  if(name==='history') renderHistory();
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+loadStorage();
+document.getElementById('week-label').textContent=getWeekLabel();
+renderSchedule();
+</script>
+</body>
+</html>
